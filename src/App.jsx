@@ -7,23 +7,40 @@ import DeleteConfirmation from "./components/DeleteConfirmation.jsx";
 import logoImg from "./assets/logo.png";
 import { sortPlacesByDistance } from "./loc.js";
 
+// loading saved data from local storage in browser:
+const storedIds = JSON.parse(localStorage.getItem("selectedPlaces")) || [];
+const storedPlaces = storedIds.map((id) =>
+  AVAILABLE_PLACES.find((place) => place.id === id)
+);
+// map-function goes through each item/id on the list and executes the function find() upon them.
+// function find() goes throuch each place in saved locations and checks if this id exists, 
+// if yes, then those previously saved locations are shown each time when page is reloaded
+// this code for local storage runs synchronously and here we don't need to use useEffect-hook
+// we moved this code outside from the App-component, so it only runs once in the entire application lifecycle
+// it's enough to run this once, when the whole app starts, so that we don't overuse performance each time the component renders
+
+
 function App() {
+
   const modal = useRef();
   const selectedPlace = useRef();
 
   // new state (without useEffect, only useState-usage would cause infinite loop):
   const [availablePlaces, setAvailablePlaces] = useState([]);
 
-  const [pickedPlaces, setPickedPlaces] = useState([]);
+  // const [pickedPlaces, setPickedPlaces] = useState([]); 
+  const [pickedPlaces, setPickedPlaces] = useState(storedPlaces); 
+  // locations fetched by storeIds.map()-functions can be our initial state for picked places 
+  // -> already saved data/locations will be rendered each time we reload page again.
 
   // useEffect doesn't return value, and needs 2 arguments:
   // 1. a function that should wrap around our side-effect code
-  // 2. dependencies (initially, it can be an empty array []) 
+  // 2. dependencies (initially, it can be an empty array [])
   // - useEffect will re-execute again only if dependency values have been changed.
   // useEffect will be executed AFTER every component execution, not before or during that.
-  // If dependency is empty array [], useEffect executes only once, 
+  // If dependency is empty array [], useEffect executes only once,
   // after App.js-function has been executed for the 1st time, and then never again.
-  // If we don't add any dependencies, not even [], useEffect would execute once 
+  // If we don't add any dependencies, not even [], useEffect would execute once
   // after every App-component render cycle -> we would still have an infinite loop.
   useEffect(() => {
     navigator.geolocation.getCurrentPosition((position) => {
@@ -53,7 +70,6 @@ function App() {
   //   setAvailablePlaces(sortedPlaces);
   // });   -> moved this part up into the anonymous function-wrapper, which is 1.argument of the useEffect-hook
 
-
   function handleStartRemovePlace(id) {
     modal.current.open();
     selectedPlace.current = id;
@@ -71,6 +87,35 @@ function App() {
       const place = AVAILABLE_PLACES.find((place) => place.id === id);
       return [place, ...prevPickedPlaces];
     });
+
+    // Another example of a side-effect (for storing data into local storage - unrelated to main code):
+    // but we don't have to wrap this code with useEffect,
+    // also we cannot, because then useEffect would be inside of the function "handleSelectPlace"
+    // React hook cannot! be used in nested functions, if-statements etc., but only on root-level of the component function
+    // we have to use useEffect only to prevent infinite loops, or if we want something to run after the component has rendered
+
+    // get all previous ID-s; extracting the data from the local storage in browser (in string-format)
+    // to convert extracted data back to original form (not always a string), we use JSON.parse()-method.
+    // If we don't have any stored data yet, and in that case, the code produces an empty array []
+    const storedIds = JSON.parse(localStorage.getItem("selectedPlaces")) || [];
+
+    //   localStorage - function provided by the browser, for saving data
+    //   localStorage - has method setItem() to store data into browser's storage (even after reload or later)
+    //   1. argument of method setItem() is a new name, or key, under which items will be saved in browser
+    //   2. argument - wrapped by JSON.stringify() - also a method provided by browser
+    //   we have to turn all values to strings, otherwise saveing into browser would't work
+    //   we can use spread-operator to add new ID-s to the list of potencially already existing saved IDs:
+
+    // localStorage.setItem("selectedPlaces", JSON.stringify([id, ...storedIds]));
+
+    // modification, to add a condition - not to save again an item/id, if this item/id is already on the list
+    //  value -1 means that this ID is not yet part of storedIds (then we can proceed and add the item)
+    if (storedIds.indexOf(id) === -1) {
+      localStorage.setItem(
+        "selectedPlaces",
+        JSON.stringify([id, ...storedIds])
+      );
+    }
   }
 
   function handleRemovePlace() {
@@ -78,6 +123,23 @@ function App() {
       prevPickedPlaces.filter((place) => place.id !== selectedPlace.current)
     );
     modal.current.close();
+
+    // we also have to add funtions to delete items from local storage, and to load data from storage
+    // (so they are visible every time we reload the app, or open it again after some time)
+
+    // 1st we also have to fetch our stored id-s/places/items:
+    const storedIds = JSON.parse(localStorage.getItem("selectedPlaces")) || [];
+
+    // filter-method can produce a new array, based on original array + some filtering condition.
+    // argument of the filter-function is a function that will be executed on every item in array,
+    // and then we return true if we want to keep the item, or false if we want to delete it from list.
+    // if some id is not matching with the currently selected id (for deleting), then this item has to be kept.
+    // But if the id-s match, this id will retunr false, and will be removed from array.
+    // What is stored in the end is an updated array, which doesn't longer contain selected/filtered out id.
+    localStorage.setItem(
+      "selectedPlaces",
+      JSON.stringify(storedIds.filter((id) => id !== selectedPlace.current))
+    );
   }
 
   return (
@@ -120,8 +182,8 @@ export default App;
 /*  
 SIDEFFECTS = tasks which need to be performed in the app, but which don't affect the current component's
 re-rendering cycle
+- not all sideeffects require using the useEffect - overusing this hook is bad practice!
 */
-
 
 // next lection: 180
 
