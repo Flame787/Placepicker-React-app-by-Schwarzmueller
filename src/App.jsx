@@ -124,17 +124,17 @@ function App() {
     );
     modal.current.close();
 
-    // we also have to add funtions to delete items from local storage, and to load data from storage
+    // We also have to add funtions to delete items from local storage, and to load data from storage
     // (so they are visible every time we reload the app, or open it again after some time)
 
     // 1st we also have to fetch our stored id-s/places/items:
     const storedIds = JSON.parse(localStorage.getItem("selectedPlaces")) || [];
 
-    // filter-method can produce a new array, based on original array + some filtering condition.
-    // argument of the filter-function is a function that will be executed on every item in array,
+    // filter-method (by browser) can produce a new array, based on original array + some filtering condition.
+    // Argument of the filter-function is a function that will be executed on every item in array,
     // and then we return true if we want to keep the item, or false if we want to delete it from list.
-    // if some id is not matching with the currently selected id (for deleting), then this item has to be kept.
-    // But if the id-s match, this id will retunr false, and will be removed from array.
+    // If some id is NOT matching with the currently selected id (for deleting), then this item has to be kept.
+    // But if the id-s match, this negation-condition will return false, and id will be removed from array.
     // What is stored in the end is an updated array, which doesn't longer contain selected/filtered out id.
     localStorage.setItem(
       "selectedPlaces",
@@ -185,6 +185,6 @@ re-rendering cycle
 - not all sideeffects require using the useEffect - overusing this hook is bad practice!
 */
 
-// next lection: 180
+// next lection: 182
 
 // after this exercise, turn off Location and Allowing apps to access location (in Windows) as it was before
