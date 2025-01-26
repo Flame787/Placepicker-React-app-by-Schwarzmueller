@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 
 import Places from "./components/Places.jsx";
 import { AVAILABLE_PLACES } from "./data.js";
@@ -123,7 +123,11 @@ function App() {
     }
   }
 
-  function handleRemovePlace() {
+  // useCallback-hook is used as a wrapper, and we can use the function 'handleRemovePlace' as 1st argument.
+  // 2nd argument of useCallback-hook is an array of dependencies
+  // useCallback also returns a value = a function which was wrapped in 1st argument, but now it's
+  // NOT recreated whenever it's component is re-executed (it stores the function in memory and reuses it):
+  const handleRemovePlace = useCallback(function handleRemovePlace() {
     setPickedPlaces((prevPickedPlaces) =>
       prevPickedPlaces.filter((place) => place.id !== selectedPlace.current)
     );
@@ -146,12 +150,12 @@ function App() {
       "selectedPlaces",
       JSON.stringify(storedIds.filter((id) => id !== selectedPlace.current))
     );
-  }
+  }, []);
 
   return (
     <>
       {/* <Modal ref={modal} > */}
-      <Modal open={modalIsOpen} onClose={handleStopRemovePlace}>     
+      <Modal open={modalIsOpen} onClose={handleStopRemovePlace}>
         {/* // new prop form Modal */}
         <DeleteConfirmation
           onCancel={handleStopRemovePlace}
@@ -159,7 +163,6 @@ function App() {
         />
         {/* {modalIsOpen && <DeleteConfirmation onCancel={handleStopRemovePlace} onConfirm={handleRemovePlace}/>} */}
         {/* <DeleteConfirmation should not be rendered always, but only conditionally, if Modal is open */}
-
       </Modal>
 
       <header>
@@ -196,6 +199,6 @@ re-rendering cycle
 - not all sideeffects require using the useEffect - overusing this hook is bad practice!
 */
 
-// next lection: 182
+// next lection: 189
 
 // after this exercise, turn off Location and Allowing apps to access location (in Windows) as it was before

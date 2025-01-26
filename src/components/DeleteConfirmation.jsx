@@ -16,7 +16,11 @@ export default function DeleteConfirmation({ onConfirm, onCancel }) {
     return() => {
       clearTimeout(timer);
     }
-  }, []);
+  }, [onConfirm]);
+
+// }, [onConfirm]); - if we add functions as dependencies, there is a risk of creating an infinite loop,
+// because each time the component re-renders, function is treated as different function and this can be problem.
+// We have to use as special hook useCallback, to ensure that a function is not re-created the whole time. 
 
   return (
     <div id="delete-confirmation">
