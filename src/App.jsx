@@ -13,24 +13,26 @@ const storedPlaces = storedIds.map((id) =>
   AVAILABLE_PLACES.find((place) => place.id === id)
 );
 // map-function goes through each item/id on the list and executes the function find() upon them.
-// function find() goes throuch each place in saved locations and checks if this id exists, 
+// function find() goes throuch each place in saved locations and checks if this id exists,
 // if yes, then those previously saved locations are shown each time when page is reloaded
 // this code for local storage runs synchronously and here we don't need to use useEffect-hook
 // we moved this code outside from the App-component, so it only runs once in the entire application lifecycle
 // it's enough to run this once, when the whole app starts, so that we don't overuse performance each time the component renders
 
-
 function App() {
-
   const modal = useRef();
   const selectedPlace = useRef();
+
+  // new: state for opening/closing Modal:
+  // const [isOpen, setIsOpen] = useState(false);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
 
   // new state (without useEffect, only useState-usage would cause infinite loop):
   const [availablePlaces, setAvailablePlaces] = useState([]);
 
-  // const [pickedPlaces, setPickedPlaces] = useState([]); 
-  const [pickedPlaces, setPickedPlaces] = useState(storedPlaces); 
-  // locations fetched by storeIds.map()-functions can be our initial state for picked places 
+  // const [pickedPlaces, setPickedPlaces] = useState([]);
+  const [pickedPlaces, setPickedPlaces] = useState(storedPlaces);
+  // locations fetched by storeIds.map()-functions can be our initial state for picked places
   // -> already saved data/locations will be rendered each time we reload page again.
 
   // useEffect doesn't return value, and needs 2 arguments:
@@ -71,12 +73,15 @@ function App() {
   // });   -> moved this part up into the anonymous function-wrapper, which is 1.argument of the useEffect-hook
 
   function handleStartRemovePlace(id) {
-    modal.current.open();
+    // modal.current.open();
+    setModalIsOpen(true); // changing the state to open the Modal
+
     selectedPlace.current = id;
   }
 
   function handleStopRemovePlace() {
-    modal.current.close();
+    // modal.current.close();
+    setModalIsOpen(false); // changing the state to close the Modal
   }
 
   function handleSelectPlace(id) {
@@ -122,7 +127,8 @@ function App() {
     setPickedPlaces((prevPickedPlaces) =>
       prevPickedPlaces.filter((place) => place.id !== selectedPlace.current)
     );
-    modal.current.close();
+    // modal.current.close();
+    setModalIsOpen(false); // changing the state to close the Modal
 
     // We also have to add funtions to delete items from local storage, and to load data from storage
     // (so they are visible every time we reload the app, or open it again after some time)
@@ -144,11 +150,16 @@ function App() {
 
   return (
     <>
-      <Modal ref={modal}>
+      {/* <Modal ref={modal} > */}
+      <Modal open={modalIsOpen} onClose={handleStopRemovePlace}>     
+        {/* // new prop form Modal */}
         <DeleteConfirmation
           onCancel={handleStopRemovePlace}
           onConfirm={handleRemovePlace}
         />
+        {/* {modalIsOpen && <DeleteConfirmation onCancel={handleStopRemovePlace} onConfirm={handleRemovePlace}/>} */}
+        {/* <DeleteConfirmation should not be rendered always, but only conditionally, if Modal is open */}
+
       </Modal>
 
       <header>
